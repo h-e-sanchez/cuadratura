@@ -1,0 +1,19 @@
+{
+  "_nota": "Concepto del software de nómina -> cuentas del plan de cuentas SAP. tipo: haber (gasto contra remuneraciones por pagar), descuento (de remuneraciones por pagar a un pasivo) o aporte (gasto del empleador contra un pasivo). Las cuentas de gasto (6xxxxx) llevan centro de costo; las de balance, no.",
+  "cuenta_liquido": "210501",
+  "conceptos": {
+    "SUELDO_BASE":       {"tipo": "haber",     "cuenta": "610101", "glosa": "Sueldos"},
+    "GRATIFICACION":     {"tipo": "haber",     "cuenta": "610102", "glosa": "Gratificación legal"},
+    "BONO_PRODUCCION":   {"tipo": "haber",     "cuenta": "610103", "glosa": "Bonos de producción"},
+    "HORAS_EXTRA":       {"tipo": "haber",     "cuenta": "610104", "glosa": "Horas extraordinarias"},
+    "COLACION":          {"tipo": "haber",     "cuenta": "610105", "glosa": "Asignación de colación"},
+    "MOVILIZACION":      {"tipo": "haber",     "cuenta": "610106", "glosa": "Asignación de movilización"},
+    "AFP":               {"tipo": "descuento", "cuenta": "210601", "glosa": "AFP por pagar"},
+    "SALUD":             {"tipo": "descuento", "cuenta": "210602", "glosa": "Salud por pagar"},
+    "SEG_CESANTIA_TRAB": {"tipo": "descuento", "cuenta": "210603", "glosa": "Seguro de cesantía por pagar"},
+    "IMPUESTO_UNICO":    {"tipo": "descuento", "cuenta": "210701", "glosa": "Impuesto único por pagar"},
+    "APORTE_SIS":        {"tipo": "aporte",    "cuenta": "610201", "contrapartida": "210601", "glosa": "Seguro de invalidez y sobrevivencia"},
+    "SEG_CESANTIA_EMP":  {"tipo": "aporte",    "cuenta": "610202", "contrapartida": "210603", "glosa": "Seguro de cesantía del empleador"},
+    "MUTUAL":            {"tipo": "aporte",    "cuenta": "610203", "contrapartida": "210604", "glosa": "Mutual de seguridad"}
+  }
+}

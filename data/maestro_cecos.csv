@@ -1,0 +1,13 @@
+ceco,descripcion,area,bloqueado
+CC-ADM-00,Gastos por asignar,Administración,N
+CC-ADM-01,Gerencia General,Administración,N
+CC-ADM-02,Finanzas,Administración,N
+CC-ADM-03,Personas,Administración,N
+CC-OPE-01,Planta Maipú,Operaciones,N
+CC-OPE-02,Planta Pudahuel,Operaciones,N
+CC-OPE-03,Logística,Operaciones,N
+CC-OPE-04,Bodega Quilicura (cerrada),Operaciones,S
+CC-COM-01,Ventas Norte,Comercial,N
+CC-COM-02,Ventas Sur,Comercial,N
+CC-COM-03,Marketing,Comercial,N
+CC-TI-01,Tecnología,TI,N

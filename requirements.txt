@@ -1,0 +1,3 @@
+# El motor (src/motor.py) usa solo la biblioteca estándar.
+# openpyxl solo hace falta para el resumen en Excel de la CLI.
+openpyxl==3.1.5

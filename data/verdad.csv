@@ -1,0 +1,33 @@
+seccion,clave,detalle,tipo,monto
+cuadratura,610102,CC-OPE-02,Diferencia de monto,-720000
+cuadratura,210501,,Diferencia de monto,720000
+observado,1900004813,1900004812,Documento duplicado,9521096
+observado,1900004820,PROV-BONO-11,Asiento manual sin origen en la nómina,850000
+rechazo,CC-OPE-04,35,Centro de costo bloqueado en SAP,4987513
+rechazo,CC-COM-04,22,Centro de costo inexistente en SAP,4287744
+rechazo,BONO_ANTIGUEDAD,6,Concepto sin cuenta contable,450000
+cuadratura,610101,CC-COM-04,Reclasificar centro de costo,-2850000
+cuadratura,610101,CC-OPE-04,Reclasificar centro de costo,-2850000
+cuadratura,610101,CC-ADM-00,Reclasificar centro de costo,5700000
+cuadratura,610102,CC-COM-04,Reclasificar centro de costo,-426000
+cuadratura,610102,CC-OPE-04,Reclasificar centro de costo,-586000
+cuadratura,610102,CC-ADM-00,Reclasificar centro de costo,1012000
+cuadratura,610103,CC-OPE-04,Reclasificar centro de costo,-255000
+cuadratura,610103,CC-ADM-00,Reclasificar centro de costo,255000
+cuadratura,610104,CC-OPE-04,Reclasificar centro de costo,-79062
+cuadratura,610104,CC-ADM-00,Reclasificar centro de costo,79062
+cuadratura,610105,CC-COM-04,Reclasificar centro de costo,-120000
+cuadratura,610105,CC-OPE-04,Reclasificar centro de costo,-180000
+cuadratura,610105,CC-ADM-00,Reclasificar centro de costo,300000
+cuadratura,610106,CC-COM-04,Reclasificar centro de costo,-80000
+cuadratura,610106,CC-OPE-04,Reclasificar centro de costo,-120000
+cuadratura,610106,CC-ADM-00,Reclasificar centro de costo,200000
+cuadratura,610201,CC-COM-04,Reclasificar centro de costo,-48813
+cuadratura,610201,CC-OPE-04,Reclasificar centro de costo,-56174
+cuadratura,610201,CC-ADM-00,Reclasificar centro de costo,104987
+cuadratura,610202,CC-COM-04,Reclasificar centro de costo,-78624
+cuadratura,610202,CC-OPE-04,Reclasificar centro de costo,-90481
+cuadratura,610202,CC-ADM-00,Reclasificar centro de costo,169105
+cuadratura,610203,CC-COM-04,Reclasificar centro de costo,-30467
+cuadratura,610203,CC-OPE-04,Reclasificar centro de costo,-35061
+cuadratura,610203,CC-ADM-00,Reclasificar centro de costo,65528

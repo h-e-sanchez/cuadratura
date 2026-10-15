@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cuadratura — nómina contra SAP</title>
+<meta name="description" content="Cuadratura de remuneraciones: valida la nómina contra el maestro de SAP, genera el asiento de carga FI y cuadra lo contabilizado por cuenta y centro de costo, con un puente que cierra en $0. Corre en el navegador; tus archivos no salen de tu equipo.">
+<meta property="og:title" content="cuadratura — nómina contra SAP">
+<meta property="og:description" content="Del libro de remuneraciones al asiento en SAP, y de vuelta: rechazos, documentos duplicados, reclasificaciones y un puente que cierra en $0.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='20' fill='%231d6b47'%3Ecu%3C/text%3E%3C/svg%3E">
+<link rel="preload" href="vendor/fonts/public-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tema.css?v=1">
+<link rel="stylesheet" href="style.css?v=1">
+<script src="tema.js?v=1" data-sitio="cuadratura"></script>
+<script src="analitica.js?v=1" data-sitio="cuadratura"></script>
+</head>
+<body>
+  <main class="ancho">
+    <header class="site-header">
+      <p class="etiqueta-sitio">Cuadratura de remuneraciones · Python en el navegador</p>
+      <h1>cuadratura</h1>
+      <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Cambiar el tema">noche</button>
+      <p class="firma">por <a href="https://www.linkedin.com/in/hern%C3%A1n-el%C3%ADas-s%C3%A1nchez-aguilera/" rel="noopener">Hernán Elías Sánchez</a> · parte de su portafolio
+        <em>Control de gestión, construido como software</em></p>
+      <p class="tagline">Del libro de remuneraciones al asiento en SAP, y de vuelta. Valida la nómina contra el maestro
+        de SAP, arma el archivo de carga contable y cuadra lo contabilizado por cuenta y centro de costo, con un
+        puente que explica cada peso de diferencia. Corre aquí mismo, en el navegador: tus archivos no salen de tu equipo.</p>
+    </header>
+
+    <section id="problema">
+      <h2>El problema</h2>
+      <p>Cada mes, el software de nómina calcula las remuneraciones y alguien las lleva a SAP. Entre un sistema y el
+        otro se pierden cosas: un bono nuevo que nadie mapeó a una cuenta, un centro de costo que se cerró en SAP pero
+        sigue en la ficha del trabajador, un documento que se cargó dos veces o una corrección manual con dos cifras
+        invertidas. El gasto de personal ya no cuadra con la nómina, y encontrar por qué toma días.</p>
+      <ol class="flujo">
+        <li><span class="paso-num">Paso 1</span><strong>Validar</strong>Cada concepto con su cuenta y cada centro de costo vigente en SAP.</li>
+        <li><span class="paso-num">Paso 2</span><strong>Asiento</strong>Dos documentos cuadrados y un archivo con los campos de carga FI.</li>
+        <li><span class="paso-num">Paso 3</span><strong>Depurar SAP</strong>Aparta duplicados y asientos manuales sin origen en la nómina.</li>
+        <li><span class="paso-num">Paso 4</span><strong>Cuadrar</strong>Esperado contra contabilizado, por cuenta y centro de costo.</li>
+        <li><span class="paso-num">Paso 5</span><strong>Puente</strong>De la nómina a SAP, partida por partida, hasta $0 sin explicar.</li>
+      </ol>
+    </section>
+
+    <section id="probar">
+      <h2>Probar</h2>
+      <p class="hint">Parte con la nómina de noviembre de <strong>Servicios Ejemplo SpA</strong> (120 colaboradores,
+        12 centros de costo, 100% sintéticos) o carga tus propios CSV. La primera vez se descarga Python al navegador
+        (unos 6 MB).</p>
+      <div class="cargas">
+        <div class="carga">
+          <label for="archivo-nomina">Libro de remuneraciones</label>
+          <input type="file" id="archivo-nomina" accept=".csv,text/csv">
+          <p class="hint">Columnas <code>periodo, colaborador, ceco, concepto, monto</code>.</p>
+        </div>
+        <div class="carga">
+          <label for="archivo-cecos">Maestro de centros de costo</label>
+          <input type="file" id="archivo-cecos" accept=".csv,text/csv">
+          <p class="hint">Columnas <code>ceco, descripcion, area, bloqueado</code> (S/N).</p>
+        </div>
+        <div class="carga">
+          <label for="archivo-sap">Partidas contabilizadas en SAP</label>
+          <input type="file" id="archivo-sap" accept=".csv,text/csv">
+          <p class="hint">Columnas <code>documento, referencia, cuenta, ceco, debe, haber</code>.</p>
+        </div>
+      </div>
+      <div class="acciones-carga">
+        <button type="button" class="btn primario" id="btn-ejemplo">Cuadrar los datos de ejemplo</button>
+        <button type="button" class="btn" id="btn-propios" disabled>Cuadrar mis archivos</button>
+        <span class="estado-run" id="estado" role="status"></span>
+      </div>
+      <p class="hint">Con tus archivos se usa el mapeo de conceptos de ejemplo
+        (<a href="config/mapeo.json"><code>config/mapeo.json</code></a>); en un proyecto real se arma con tu plan de cuentas.</p>
+    </section>
+
+    <section id="resultados" hidden>
+      <h2>Resultado <span class="hint" id="referencia"></span></h2>
+      <div class="kpis" id="kpis"></div>
+
+      <div class="bloques">
+        <div class="bloque">
+          <h3>Puente de gasto: nómina a SAP</h3>
+          <table id="tabla-puente"></table>
+        </div>
+        <div class="bloque">
+          <h3>Gasto de personal por área</h3>
+          <div class="barras" id="barras-areas"></div>
+          <p class="hint">"Sin centro válido" es el gasto de fichas con un centro bloqueado o inexistente en SAP.</p>
+        </div>
+      </div>
+
+      <h3>Rechazos de la validación</h3>
+      <p class="hint">Lo que la interfaz no puede contabilizar tal cual: hay que corregirlo en la nómina o en el mapeo antes de cargar.</p>
+      <div class="table-scroll"><table id="tabla-rechazos"></table></div>
+
+      <h3>Documentos de SAP que no se cuadran</h3>
+      <div class="table-scroll"><table id="tabla-observados"></table></div>
+
+      <h3>Diferencias por cuenta y centro de costo</h3>
+      <div class="chips" id="filtros" role="group" aria-label="Filtrar diferencias por tipo"></div>
+      <div class="table-scroll"><table id="tabla-cuadratura"></table></div>
+
+      <p class="acciones-carga" style="margin-top: var(--sp-4)">
+        <button type="button" class="btn" id="dl-cuadratura">Descargar cuadratura.csv</button>
+        <button type="button" class="btn" id="dl-interfaz">Descargar interfaz_sap.csv</button>
+        <button type="button" class="btn" id="dl-rechazos">Descargar rechazos.csv</button>
+      </p>
+    </section>
+
+    <section id="como-funciona">
+      <h2>Cómo funciona</h2>
+      <p>La nómina se agrega en dos documentos: <strong>remuneraciones</strong> (haberes al gasto, descuentos a sus pasivos y el
+        líquido a remuneraciones por pagar) y <strong>aportes del empleador</strong> (SIS, seguro de cesantía y mutual). Las
+        cuentas de gasto llevan centro de costo; las de balance, no. Cada documento cuadra por construcción.</p>
+      <p>Si una ficha trae un centro de costo bloqueado o inexistente, la interfaz no detiene la carga: deja ese gasto en
+        <code>CC-ADM-00</code> (gastos por asignar). La cuadratura lo encuentra y propone la reclasificación, porque lo que
+        falta en el centro inválido es exactamente lo que sobra en gastos por asignar.</p>
+      <p>Antes de cuadrar se apartan dos tipos de documento: los que repiten línea por línea otro documento con la misma
+        referencia (duplicados) y los que no traen la referencia de la nómina (asientos manuales). Lo que queda se compara
+        por cuenta y centro de costo, y cada diferencia entra al puente.</p>
+      <p>La CLI deja además un <strong>modelo estrella para Power BI</strong> (un hecho por colaborador y concepto, con las
+        dimensiones de centro de costo y concepto) y la <strong>API</strong> <code>python -m src.api</code> expone el asiento
+        y la cuadratura en JSON para conectarla con el middleware o el orquestador que ya exista.</p>
+      <p class="hint">El motor es un solo archivo de Python, <code>src/motor.py</code>, sin dependencias. El mismo archivo
+        corre en los tests, en la CLI, en la API y en esta página. Con los datos de ejemplo, los tests exigen encontrar cada
+        diferencia sembrada: 3 rechazos, 2 documentos observados y 27 filas por cuadrar, con $0 sin explicar.</p>
+    </section>
+
+    <section id="fases">
+      <h2>Cómo se lleva a su empresa</h2>
+      <div class="fases">
+        <article><p class="paso-num">Fase 1</p><h3>Cuadratura sobre sus exportaciones</h3><p>Su libro de remuneraciones y las
+          partidas de SAP en archivo, el mapeo de conceptos con su plan de cuentas y el informe de diferencias del último
+          cierre.</p></article>
+        <article><p class="paso-num">Fase 2</p><h3>Carga y tablero</h3><p>El archivo de carga FI validado antes de cada
+          cierre y un tablero en Power BI con el gasto de personal por área, centro y concepto.</p></article>
+        <article><p class="paso-num">Fase 3</p><h3>Integración en vivo</h3><p>La lectura directa desde SAP y desde el software
+          de nómina por API, en lugar de archivos, según lo que permitan sus sistemas.</p></article>
+      </div>
+    </section>
+
+    <section id="portafolio" class="portafolio" aria-label="Portafolio">
+      <h2>Portafolio</h2>
+      <p class="hint"><strong>Control de gestión, construido como software</strong> · sitios de
+        Hernán Elías Sánchez: cada uno muestra una parte del mismo oficio.</p>
+      <div class="portafolio-compartido">
+        <article class="sitio">
+          <p class="sitio-rol">La vitrina</p>
+          <h3>centinela</h3>
+          <p class="sitio-desc">Reportes Power BI de control de gestión, personas, compensaciones, pricing, capital de trabajo, contratistas y mantenimiento, con datos sintéticos, el modelo y el DAX a la vista.</p>
+          <p class="sitio-acciones"><a class="sitio-boton" href="https://h-e-sanchez.github.io/centinela/">Ver centinela →</a> <a class="sitio-github" href="https://github.com/h-e-sanchez/centinela">GitHub</a></p>
+        </article>
+        <article class="sitio">
+          <p class="sitio-rol">El taller</p>
+          <h3>consulta</h3>
+          <p class="sitio-desc">SQL, perfilado y gráficos sobre CSV, Parquet o Excel, sin que el archivo salga de tu equipo.</p>
+          <p class="sitio-acciones"><a class="sitio-boton" href="https://h-e-sanchez.github.io/consulta/">Abrir consulta →</a> <a class="sitio-github" href="https://github.com/h-e-sanchez/consulta">GitHub</a></p>
+        </article>
+        <article class="sitio">
+          <p class="sitio-rol">El manual</p>
+          <h3>cartilla</h3>
+          <p class="sitio-desc">Python y pandas para quien viene de Excel, con ejemplos que se ejecutan en el navegador.</p>
+          <p class="sitio-acciones"><a class="sitio-boton" href="https://h-e-sanchez.github.io/cartilla/">Abrir cartilla →</a> <a class="sitio-github" href="https://github.com/h-e-sanchez/cartilla">GitHub</a></p>
+        </article>
+        <article class="sitio">
+          <p class="sitio-rol">El modelo</p>
+          <h3>fiabilidad</h3>
+          <p class="sitio-desc">Mantenimiento contra fallas: cuatro brechas detectadas y un plan ajustado con cada cambio justificado.</p>
+          <p class="sitio-acciones"><a class="sitio-boton" href="https://h-e-sanchez.github.io/fiabilidad/">Abrir fiabilidad →</a> <a class="sitio-github" href="https://github.com/h-e-sanchez/fiabilidad">GitHub</a></p>
+        </article>
+        <article class="sitio actual" aria-current="page">
+          <p class="sitio-rol">La integración <span class="estas-aqui">Estás aquí</span></p>
+          <h3>cuadratura</h3>
+          <p class="sitio-desc">Nómina contra SAP: rechazos, asiento de carga, reclasificaciones y un puente que cierra en $0.</p>
+          <p class="sitio-acciones"><a class="sitio-boton" href="#">Volver al inicio ↑</a> <a class="sitio-github" href="https://github.com/h-e-sanchez/cuadratura">GitHub</a></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="acerca">
+      <h2>Acerca de</h2>
+      <p>Soy Ingeniero Civil Industrial con 8 años en control de gestión, FP&amp;A y People Analytics. Buena parte de ese
+        tiempo la he pasado entre la nómina y la contabilidad: presupuesto de remuneraciones, compensaciones y el cierre
+        donde ambas cifras tienen que coincidir. Construyo con Python y Power BI las herramientas que uso; esta es una versión
+        abierta de esa cuadratura, con datos sintéticos.</p>
+      <p class="perfil-enlaces"><a href="https://www.linkedin.com/in/hern%C3%A1n-el%C3%ADas-s%C3%A1nchez-aguilera/" rel="noopener">LinkedIn</a> ·
+        <a href="https://github.com/h-e-sanchez" rel="noopener">GitHub</a></p>
+    </section>
+
+    <footer>
+      <p class="firma-pie">Parte del portafolio <em>Control de gestión, construido como software</em> · por <a href="https://www.linkedin.com/in/hern%C3%A1n-el%C3%ADas-s%C3%A1nchez-aguilera/" rel="noopener">Hernán Elías Sánchez</a> · datos de ejemplo 100% sintéticos: ninguna empresa, trabajador ni sistema real. Tasas de cotización e impuesto simplificadas.</p>
+      <p><a href="https://github.com/h-e-sanchez/cuadratura">Código en GitHub</a> · Licencia MIT</p>
+      <p class="english"><strong>English:</strong> A payroll-to-SAP reconciliation tool by Hernán Elías Sánchez (management
+        control, FP&amp;A, People Analytics). It validates the payroll register against the SAP cost-center master, builds the
+        balanced FI posting and its upload file, sets aside duplicated and manual SAP documents, reconciles the posted amounts
+        by G/L account and cost center, and explains the total difference down to zero. The engine is a single
+        dependency-free Python file that runs in the tests, the CLI, a small JSON API and the browser through Pyodide. All
+        data is synthetic.</p>
+      <p class="nota-analitica">Medimos visitas con <a href="https://www.goatcounter.com/">GoatCounter</a>, sin cookies ni datos personales.</p>
+    </footer>
+  </main>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
