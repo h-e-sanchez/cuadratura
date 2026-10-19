@@ -81,5 +81,11 @@
       else if (sistema.addListener) sistema.addListener(alCambiar);
     }
     marcarSeccion();
+    // En pantallas angostas la lista de sitios se desplaza de lado: deja visible el sitio actual.
+    var sitios = document.querySelector(".sitios");
+    var actual = sitios && sitios.querySelector('[aria-current="page"]');
+    if (actual && sitios.scrollWidth > sitios.clientWidth) {
+      sitios.scrollLeft = actual.offsetLeft - sitios.offsetLeft - (sitios.clientWidth - actual.offsetWidth) / 2;
+    }
   });
 })();
